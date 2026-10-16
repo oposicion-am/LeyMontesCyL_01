@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test Ley de Montes CyL</title>
+<style>
+:root{
+  --bg:#f4f6f3; --card:#ffffff; --ink:#1d2621; --muted:#5d6b63; --line:#d9e0db;
+  --accent:#2f6b45; --accent-soft:#e3efe6; --ok:#2e7d32; --ok-soft:#e5f3e6;
+  --ko:#c62828; --ko-soft:#fbe7e7; --f:#2e7d32; --m:#b26a00; --a:#b3261e;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#141a16; --card:#1d2520; --ink:#e7ece8; --muted:#a3b0a8; --line:#2f3a33;
+    --accent:#7cc495; --accent-soft:#25362b; --ok:#81c784; --ok-soft:#1f3322;
+    --ko:#ef9a9a; --ko-soft:#3a2222; --f:#81c784; --m:#ffb74d; --a:#ef9a9a;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.45}
+header{background:var(--accent);color:#fff;padding:22px 16px 18px;text-align:center}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) header{color:#10170f}}
+header h1{margin:0;font-size:1.25rem;letter-spacing:.02em}
+header p{margin:6px 0 0;font-size:.9rem;opacity:.9}
+.wrap{max-width:860px;margin:0 auto;padding:16px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.tabs button,.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:9px 14px;border-radius:8px;font:inherit;cursor:pointer}
+.tabs button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.bar{position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 0 10px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.prog{flex:1;min-width:160px;height:8px;background:var(--line);border-radius:6px;overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+.stat{font-size:.9rem;color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+.qhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px}
+.num{font-weight:bold;color:var(--accent)}
+.tag{font-size:.75rem;padding:2px 8px;border-radius:20px;border:1px solid currentColor}
+.tag.F{color:var(--f)} .tag.M{color:var(--m)} .tag.A{color:var(--a)}
+.q{font-weight:bold;margin:0 0 12px;text-align:justify;hyphens:auto}
+.opt{display:flex;gap:8px;width:100%;text-align:justify;hyphens:auto;margin:6px 0;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--ink);font:inherit;cursor:pointer}
+.opt b{flex:none}.opt span{flex:1}
+.opt:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
+.opt:disabled{cursor:default}
+.opt.ok{background:var(--ok-soft);border-color:var(--ok)}
+.opt.ko{background:var(--ko-soft);border-color:var(--ko)}
+.why{display:none;margin-top:10px;padding:10px 12px;border-left:4px solid var(--accent);background:var(--accent-soft);border-radius:6px;font-size:.92rem;text-align:justify;hyphens:auto}
+.why.show{display:block}
+.result{display:none;text-align:center}
+.result.show{display:block}
+.result .big{font-size:2rem;font-weight:bold;color:var(--accent)}
+.flipgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.flip{perspective:1000px;min-height:300px;cursor:pointer}
+.flip .in{position:relative;width:100%;height:100%;min-height:300px;transition:transform .5s;transform-style:preserve-3d}
+.flip.on .in{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;overflow:auto;font-size:.9rem;text-align:justify;hyphens:auto}
+.face.back{transform:rotateY(180deg);background:var(--accent-soft)}
+.face small{display:block;color:var(--muted);margin-top:8px}
+.face ol{padding-left:0;list-style:none;margin:8px 0 0}
+.face li{display:flex;gap:6px;margin-bottom:4px}.face li b{flex:none}
+.word{background:#fff;color:#000;font-family:Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.35;padding:28px;border:1px solid var(--line);border-radius:6px;text-align:justify}
+.word h2{font-size:12pt;text-align:center;margin:0 0 18px}
+.word h3{font-size:11pt;margin:24px 0 10px}
+.word p{margin:0}
+.word .wq{margin:0 0 12px}
+.word .wq p.e{font-weight:bold}
+.word .wr{margin:0 0 8px}
+.hide{display:none!important}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;padding:10px 16px;border-radius:8px;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+@media print{
+  header,.tabs,.tools,.bar,#vTest,#vCards,.toast{display:none!important}
+  #vWord{display:block!important}
+  body{background:#fff}
+  .wrap{max-width:none;padding:0}
+  .word{border:none;padding:0}
+  .wq,.wr{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>TEST DE EVALUACIÓN – Ley 3/2009, de 6 de abril, de Montes de Castilla y León</h1>
+  <p>Agentes Medioambientales · Materias Específicas · 25 preguntas</p>
+</header>
+<div class="wrap">
+  <div class="tabs">
+    <button data-v="vTest" class="on">Test interactivo</button>
+    <button data-v="vCards">Tarjetas de repaso</button>
+    <button data-v="vWord">Versión Word / imprimir</button>
+  </div>
+
+  <section id="vTest">
+    <div class="bar">
+      <div class="prog"><i id="pg"></i></div>
+      <span class="stat" id="st">0/25 respondidas · 0 aciertos</span>
+      <button class="btn" id="rst">Reiniciar</button>
+    </div>
+    <div id="qs"></div>
+    <div class="card result" id="res">
+      <div class="big" id="resN"></div>
+      <p id="resT"></p>
+      <button class="btn primary" id="rst2">Repetir test</button>
+    </div>
+  </section>
+
+  <section id="vCards" class="hide">
+    <p class="stat">Pulsa una tarjeta para ver la respuesta y el razonamiento.</p>
+    <div class="flipgrid" id="fg"></div>
+  </section>
+
+  <section id="vWord" class="hide">
+    <div class="tools">
+      <button class="btn primary" id="cp">Copiar para Word</button>
+      <button class="btn" id="pr">Imprimir / PDF</button>
+      <button class="btn" id="dl">Descargar .doc</button>
+    </div>
+    <div class="word" id="wd"></div>
+  </section>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const T="TEST DE EVALUACIÓN – Ley 3/2009, de 6 de abril, de Montes de Castilla y León";
+const D={F:"Fácil",M:"Medio",A:"Alto"};
+const Q=[{"d": "F", "q": "¿Cuándo tienen la consideración de monte los terrenos cuyo cultivo agrícola ha sido abandonado?", "o": ["Cuando el abandono supera diez años, en cualquier caso.", "Cuando el abandono supera veinte años y han adquirido signos inequívocos de su estado forestal, salvo que estén acogidos a programas públicos de abandono temporal de la producción agraria.", "Cuando el abandono supera treinta años, aunque no tengan vegetación forestal.", "Cuando el abandono supera quince años y así lo declara el Ayuntamiento."], "c": 1, "r": "Art. 2.2.c: más de veinte años de abandono y signos inequívocos de estado forestal, salvo programas públicos de abandono temporal."}, {"d": "F", "q": "¿Cuál de los siguientes terrenos NO tiene la consideración de monte?", "o": ["Los terrenos yermos, roquedos y arenales.", "Las construcciones e infraestructuras destinadas al servicio del monte en el que se ubican.", "Los enclaves forestales en terrenos agrícolas con una superficie inferior a diez áreas.", "Los terrenos adscritos a la finalidad de ser repoblados o transformados al uso forestal."], "c": 2, "r": "Art. 2.3.b: los enclaves forestales en terrenos agrícolas de menos de diez áreas no son monte. Las demás opciones sí lo son (art. 2.2)."}, {"d": "M", "q": "Los montes vecinales en mano común:", "o": ["Tienen naturaleza especial, son indivisibles, inalienables, imprescriptibles e inembargables, y se les aplica lo dispuesto para los montes privados, sin perjuicio de su legislación especial.", "Son montes públicos pertenecientes a las entidades locales.", "Integran en todo caso el dominio público forestal.", "Son montes patrimoniales de la Comunidad de Castilla y León."], "c": 0, "r": "Art. 8.4."}, {"d": "M", "q": "¿Qué efecto jurídico produce la inclusión de un monte en el Catálogo de Montes de Utilidad Pública?", "o": ["Lo convierte en monte patrimonial de la entidad titular.", "Lo exime de su inscripción en el Registro de la Propiedad.", "Atribuye su titularidad a la Comunidad de Castilla y León.", "El monte adquiere la condición de bien de dominio público, la inclusión se considera acto expreso de afectación y otorga la presunción posesoria a favor de la entidad pública a cuyo nombre figure."], "c": 3, "r": "Art. 15."}, {"d": "M", "q": "En los montes catalogados de utilidad pública, la potestad de desahucio administrativo corresponde a:", "o": ["La entidad local propietaria del monte.", "La consejería competente en materia de montes.", "La consejería y la entidad propietaria de forma conjunta.", "El Ayuntamiento en cuyo término radique el monte."], "c": 1, "r": "Art. 23.1: investigación, deslinde y recuperación de oficio son de la consejería y la entidad propietaria; el desahucio administrativo corresponde solo a la consejería."}, {"d": "M", "q": "¿Cuál es el plazo máximo para resolver el procedimiento de deslinde, contado desde el acuerdo de iniciación?", "o": ["Seis meses.", "Doce meses.", "Veinticuatro meses; transcurrido sin resolución notificada, el procedimiento caduca.", "Treinta y seis meses."], "c": 2, "r": "Art. 26.7: si vence el plazo sin resolución, caduca y se archivan las actuaciones."}, {"d": "A", "q": "En el deslinde de montes patrimoniales, además de los títulos inscritos, tienen valor en el apeo las pruebas que acrediten la posesión pública, pacífica, no interrumpida y en concepto de dueño durante más de:", "o": ["Treinta años.", "Diez años.", "Veinte años.", "Cuarenta años."], "c": 0, "r": "Art. 26.5. En los demaniales solo valen los títulos inscritos en el Registro de la Propiedad."}, {"d": "A", "q": "La recuperación posesoria en vía administrativa de un monte patrimonial requiere que:", "o": ["Se ejercite en cualquier tiempo, sin límite temporal.", "La iniciación se notifique antes de seis meses desde la usurpación.", "La iniciación se notifique antes de cinco años desde la usurpación.", "La iniciación del procedimiento se notifique antes de un año desde que la administración competente tuvo conocimiento de la usurpación."], "c": 3, "r": "Art. 27.2. En los demaniales, en cualquier tiempo."}, {"d": "M", "q": "Las entidades públicas tienen derecho de adquisición preferente en la enajenación a título oneroso de montes de extensión superior a:", "o": ["100 hectáreas.", "150 hectáreas.", "250 hectáreas.", "500 hectáreas."], "c": 1, "r": "Art. 30.1.a. La Comunidad tiene preferencia sobre la entidad local (art. 30.2)."}, {"d": "A", "q": "Los modelos o referentes selvícolas que puede aprobar la consejería (art. 41 bis) se refieren a montes de superficie inferior a:", "o": ["25 hectáreas.", "50 hectáreas.", "100 hectáreas.", "150 hectáreas."], "c": 2, "r": "Art. 41 bis. Tienen la consideración de instrumentos de ordenación forestal."}, {"d": "F", "q": "¿Qué son los aprovechamientos extraordinarios en montes catalogados de utilidad pública?", "o": ["Los que, por su carácter forzoso, no están incluidos en el Plan Anual y deben realizarse por urgencia o fuerza mayor (incendios, plagas, vendavales, infraestructuras), y requieren autorización expresa de la consejería.", "Los incluidos en el Plan Anual de Aprovechamientos y en sus modificaciones.", "Los destinados consuetudinariamente al uso propio de los vecinos.", "Los que, por su carácter urgente, no requieren autorización."], "c": 0, "r": "Art. 50. Los incluidos en el Plan Anual son ordinarios (art. 49.4)."}, {"d": "A", "q": "Cuando el interesado solicita la licencia de aprovechamiento en un monte catalogado:", "o": ["Se expide en un mes y el silencio es desestimatorio.", "Se expide en tres meses y el silencio es estimatorio.", "Se expide en quince días y el silencio es desestimatorio.", "Se expide en quince días; si vence el plazo sin notificación y se han acreditado las obligaciones exigidas, el interesado puede entenderla concedida."], "c": 3, "r": "Art. 51.3: silencio positivo."}, {"d": "A", "q": "En montes sin instrumento de ordenación forestal en vigor, la solicitud de autorización de aprovechamientos maderables y leñosos debe resolverse en el plazo de:", "o": ["Quince días; el silencio es estimatorio.", "Un mes; el silencio habilita para entender denegada la autorización.", "Dos meses; el silencio es estimatorio.", "Tres meses; el silencio es desestimatorio."], "c": 1, "r": "Art. 57.4."}, {"d": "M", "q": "A efectos de la Ley, un uso privativo de un monte catalogado tiene carácter perdurable cuando la ocupación excede de:", "o": ["Un año.", "Dos años.", "Cuatro años.", "Veinticinco años."], "c": 2, "r": "Art. 61.4."}, {"d": "F", "q": "El plazo máximo de duración de una concesión demanial para uso privativo de un monte catalogado es de:", "o": ["25 años.", "4 años.", "30 años.", "50 años."], "c": 0, "r": "Art. 65.4. La autorización de uso especial tiene un máximo de 4 años (art. 66.1)."}, {"d": "A", "q": "Para calcular la contraprestación económica mínima de autorizaciones y concesiones en montes catalogados se aplica un tipo anual del:", "o": ["3 %.", "4 %.", "5 %.", "6 %, sobre el valor del suelo y el beneficio esperado, incrementado con el valor de los daños y perjuicios."], "c": 3, "r": "Art. 69.2. Se admiten reducciones de hasta el 85 % (art. 69.3)."}, {"d": "F", "q": "Las cortas a hecho y los aclareos intensos conllevan la obligación de regenerar el arbolado, salvo previsión en contrario, en un plazo máximo de:", "o": ["Tres años.", "Cinco años.", "Diez años.", "Dos años."], "c": 1, "r": "Art. 74.1. Si se incumple, la consejería puede actuar subsidiariamente."}, {"d": "M", "q": "La consejería puede autorizar excepcionalmente roturaciones en montes catalogados para fomentar y conservar la fauna silvestre en:", "o": ["Superficies menores de 5 hectáreas por monte, en terrenos desarbolados.", "Superficies menores de 10 hectáreas por monte, en cualquier terreno.", "Superficies menores de 25 hectáreas por monte.", "Superficies menores de 1 hectárea, aunque estén arboladas."], "c": 0, "r": "Art. 75.2.a."}, {"d": "F", "q": "El uso del fuego requiere autorización previa de la consejería en los montes y en los terrenos rústicos situados a menos de:", "o": ["100 metros de ellos.", "200 metros de ellos.", "400 metros de ellos.", "500 metros de ellos."], "c": 2, "r": "Art. 90, salvo en los lugares habilitados por la consejería."}, {"d": "A", "q": "Respecto a los montes afectados por incendios, señale la afirmación correcta:", "o": ["Los aprovechamientos ganaderos y cinegéticos se suspenden durante tres años, con derecho a compensación.", "Se prohíbe el cambio de uso forestal durante diez años.", "Se prohíbe modificar la clasificación urbanística durante veinte años.", "Los aprovechamientos ganaderos y cinegéticos quedan suspendidos de forma automática y sin compensación durante cinco años, y se prohíbe el cambio de uso forestal durante treinta años."], "c": 3, "r": "Art. 92.1 y 92.2."}, {"d": "M", "q": "En montes catalogados afectados por eventos catastróficos, el porcentaje destinado al Fondo de Mejoras de los ingresos por aprovechamientos extraordinarios se eleva hasta el:", "o": ["15 %.", "30 %.", "50 %.", "85 %."], "c": 1, "r": "Art. 108.1."}, {"d": "F", "q": "La apropiación o usurpación de la superficie de montes públicos igual o superior a 5 hectáreas se califica como infracción:", "o": ["Muy grave.", "Grave.", "Leve.", "Grave solo si causa daños de reparación superior a 10 años."], "c": 0, "r": "Art. 114.1.b. Por debajo de 5 ha es grave (art. 114.2.b)."}, {"d": "M", "q": "En el Registro Regional de Infractores en materia de montes, los antecedentes por infracciones graves se cancelan transcurrido:", "o": ["Un año.", "Tres años.", "Dos años.", "Cinco años."], "c": 2, "r": "Art. 123.3: muy graves, tres años; graves, dos años; leves, un año."}, {"d": "F", "q": "Según la Ley 3/2009, los funcionarios de la Escala de Agentes Medioambientales:", "o": ["No tienen la consideración de autoridad y solo pueden formular denuncias.", "Pueden imponer directamente las sanciones previstas en la Ley.", "Solo pueden decomisar productos con autorización judicial previa.", "Tienen la consideración de autoridad y pueden acordar medidas provisionales antes de iniciarse el procedimiento, así como el decomiso de productos, herramientas y medios empleados en la infracción."], "c": 3, "r": "Arts. 120.2, 121.5 y 122.1. La competencia sancionadora es del titular de la consejería (art. 117)."}, {"d": "M", "q": "Tienen la condición de indivisibles, salvo que el PORF establezca otro límite, las extensiones de montes iguales o inferiores a:", "o": ["10 hectáreas.", "25 hectáreas.", "50 hectáreas.", "150 hectáreas."], "c": 1, "r": "Disposición adicional séptima."}];
+const L=["a","b","c","d"];
+const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+
+let ans={};
+function buildTest(){
+  ans={};
+  qs.innerHTML=Q.map((x,i)=>`<div class="card" id="c${i}">
+   <div class="qhead"><span class="num">Pregunta ${i+1}</span><span class="tag ${x.d}">${D[x.d]}</span></div>
+   <p class="q">${esc(x.q)}</p>
+   ${x.o.map((o,j)=>`<button class="opt" data-i="${i}" data-j="${j}"><b>${L[j]})</b><span>${esc(o)}</span></button>`).join("")}
+   <div class="why" id="w${i}"></div></div>`).join("");
+  res.classList.remove("show");upd();
+}
+qs.addEventListener("click",e=>{
+  const b=e.target.closest(".opt");if(!b)return;
+  const i=+b.dataset.i,j=+b.dataset.j;if(i in ans)return;
+  ans[i]=j;const x=Q[i];
+  document.querySelectorAll(`#c${i} .opt`).forEach((o,k)=>{o.disabled=true;if(k===x.c)o.classList.add("ok");else if(k===j)o.classList.add("ko");});
+  const w=document.getElementById("w"+i);
+  w.innerHTML=`<b>${j===x.c?"✔ Correcto.":"✘ Incorrecto."}</b> Respuesta: <b>${L[x.c]})</b>. ${esc(x.r)}`;
+  w.classList.add("show");upd();
+});
+function upd(){
+  const n=Object.keys(ans).length,ok=Object.entries(ans).filter(([i,j])=>Q[i].c===j).length;
+  pg.style.width=(n/Q.length*100)+"%";
+  st.textContent=`${n}/${Q.length} respondidas · ${ok} aciertos`;
+  if(n===Q.length){
+    const nota=(ok/Q.length*10).toFixed(2).replace(".",",");
+    resN.textContent=`${ok}/${Q.length} · Nota ${nota}`;
+    resT.textContent=ok>=20?"Excelente dominio del tema.":ok>=13?"Aprobado. Repasa las preguntas falladas.":"Conviene repasar el tema antes de repetir el test.";
+    res.classList.add("show");res.scrollIntoView({behavior:"smooth"});
+  }
+}
+rst.onclick=rst2.onclick=()=>{buildTest();scrollTo({top:0,behavior:"smooth"})};
+
+fg.innerHTML=Q.map((x,i)=>`<div class="flip"><div class="in">
+  <div class="face"><span class="num">${i+1}.</span> <span class="tag ${x.d}">${D[x.d]}</span><p class="q" style="margin-top:8px">${esc(x.q)}</p><ol>${x.o.map((o,j)=>`<li><b>${L[j]})</b><span>${esc(o)}</span></li>`).join("")}</ol></div>
+  <div class="face back"><b>${i+1} – ${L[x.c]})</b> ${esc(x.o[x.c])}<small>${esc(x.r)}</small></div>
+</div></div>`).join("");
+fg.addEventListener("click",e=>{const f=e.target.closest(".flip");if(f)f.classList.toggle("on")});
+
+function wordHTML(){
+  return `<h2>${T}</h2>`+
+  Q.map((x,i)=>`<div class="wq"><p class="e">${i+1}. ${esc(x.q)}</p>${x.o.map((o,j)=>`<p>${L[j]}) ${esc(o)}</p>`).join("")}</div>`).join("")+
+  `<h3>RESPUESTAS CORRECTAS</h3>`+
+  Q.map((x,i)=>`<div class="wr"><p><b>${i+1}-${L[x.c]}</b>. ${esc(x.r)}</p></div>`).join("");
+}
+wd.innerHTML=wordHTML();
+function plain(){
+  return T+"\n\n"+Q.map((x,i)=>`${i+1}. ${x.q}\n`+x.o.map((o,j)=>`${L[j]}) ${o}`).join("\n")).join("\n\n")+
+  "\n\nRESPUESTAS CORRECTAS\n\n"+Q.map((x,i)=>`${i+1}-${L[x.c]}. ${x.r}`).join("\n");
+}
+function toastMsg(m){toast.textContent=m;toast.classList.add("show");setTimeout(()=>toast.classList.remove("show"),2200)}
+cp.onclick=async()=>{
+  const html=`<div style="font-family:Arial;font-size:11pt;text-align:justify">${wordHTML()}</div>`;
+  try{
+    await navigator.clipboard.write([new ClipboardItem({"text/html":new Blob([html],{type:"text/html"}),"text/plain":new Blob([plain()],{type:"text/plain"})})]);
+    toastMsg("Copiado. Pégalo en Word con Ctrl+V");
+  }catch(e){
+    try{await navigator.clipboard.writeText(plain());toastMsg("Copiado como texto")}catch(_){
+      const r=document.createRange();r.selectNodeContents(wd);const s=getSelection();s.removeAllRanges();s.addRange(r);toastMsg("Texto seleccionado: pulsa Ctrl+C");}
+  }
+};
+pr.onclick=()=>print();
+dl.onclick=()=>{
+  const doc=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><style>body{font-family:Arial;font-size:11pt;text-align:justify}h2{font-size:12pt;text-align:center}h3{font-size:11pt}p{margin:0}.wq,.wr{margin-bottom:10pt}</style></head><body>${wordHTML()}</body></html>`;
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["﻿"+doc],{type:"application/msword"}));
+  a.download="Test_Ley_Montes_CyL.doc";a.click();
+};
+
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("on",x===b));
+  ["vTest","vCards","vWord"].forEach(v=>document.getElementById(v).classList.toggle("hide",v!==b.dataset.v));
+});
+buildTest();
+</script>
+</body>
+</html>
